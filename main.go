@@ -1,21 +1,20 @@
 package main
 
-
 import (
 	"math/rand"
+	"os"
+	"os/signal"
 
 	"github.com/Ben-Edwards44/Ascii-Rasterizer/mesh"
-	"github.com/Ben-Edwards44/Ascii-Rasterizer/vector"
 	"github.com/Ben-Edwards44/Ascii-Rasterizer/rasterizer"
+	"github.com/Ben-Edwards44/Ascii-Rasterizer/vector"
 )
 
-
 var (
-	SUN_DIR = vector.Vec3{X: 1, Y: 0.2, Z: -0.3}.Normalise()
+	SUN_DIR           = vector.Vec3{X: 1, Y: 0.2, Z: -0.3}.Normalise()
 	MODEL_TRANSLATION = vector.Vec3{X: 0, Y: 0, Z: 5}
 	MODEL_ENLARGEMENT = 1.5
 )
-
 
 func triInPixel(pixel_x int, pixel_y int, tris []rasterizer.Triangle) (bool, rasterizer.Triangle) {
 	point := vector.Vec2{X: float64(pixel_x), Y: float64(pixel_y)}
@@ -36,13 +35,11 @@ func triInPixel(pixel_x int, pixel_y int, tris []rasterizer.Triangle) (bool, ras
 	return hit, nearest_tri
 }
 
-
 func randAngle(max_angle float64) float64 {
 	rand_f := rand.Float64()
 
 	return rand_f * max_angle
 }
-
 
 func rotateModel(model *mesh.Model, translation vector.Vec3) {
 	rot_x := randAngle(0.05)
@@ -55,7 +52,6 @@ func rotateModel(model *mesh.Model, translation vector.Vec3) {
 	model.Rotate(rot_x, rot_y, rot_z)
 	model.Translate(translation)
 }
-
 
 func renderModel(model *mesh.Model) {
 	var screen [rasterizer.SCREEN_HEIGHT][rasterizer.SCREEN_WIDTH]pixel
@@ -84,29 +80,32 @@ func renderModel(model *mesh.Model) {
 	printScreen(screen)
 }
 
-
 func spinningObject(file_path string) {
 	model := mesh.ParseModel(file_path)
 
 	model.Enlarge(MODEL_ENLARGEMENT)
 	model.Translate(MODEL_TRANSLATION)
 
+	
 	for {
 		rotateModel(&model, MODEL_TRANSLATION)
 		renderModel(&model)
 	}
 }
 
-
 func cleanup() {
 	showCursor()
 	moveCursor(rasterizer.SCREEN_HEIGHT, false)
 }
 
-
 func main() {
 	defer cleanup()
 
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
+
 	hideCursor()
-	spinningObject("models/torus")
+	go spinningObject("models/suzanne")
+
+	<-sig
 }

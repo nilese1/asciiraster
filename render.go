@@ -1,14 +1,11 @@
 package main
 
-
 import (
 	"fmt"
 	"github.com/Ben-Edwards44/Ascii-Rasterizer/rasterizer"
 )
 
-
 const CHARS = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
-
 
 type pixel struct {
 	r int
@@ -18,29 +15,26 @@ type pixel struct {
 	light float64
 }
 
-
 func moveCursor(lines int, move_up bool) {
 	char := 'B'
-	if move_up {char = 'A'}
+	if move_up {
+		char = 'A'
+	}
 
 	fmt.Printf("\033[%v%c", lines, char)
 }
 
-
-func setColour (r int, g int, b int) {
+func setColour(r int, g int, b int) {
 	fmt.Printf("\033[38;2;%v;%v;%vm", r, g, b)
 }
-
 
 func hideCursor() {
 	fmt.Print("\033[?25l")
 }
 
-
 func showCursor() {
 	fmt.Print("\033[?25h")
 }
-
 
 func getChar(light float64) string {
 	chosen_char := int(light * float64(len(CHARS)))
@@ -48,7 +42,6 @@ func getChar(light float64) string {
 
 	return string(CHARS[char_inx])
 }
-
 
 func printScreen(pixels [rasterizer.SCREEN_HEIGHT][rasterizer.SCREEN_WIDTH]pixel) {
 	for _, row := range pixels {
