@@ -1,22 +1,21 @@
-package mesh
+package rasterizer
 
 import (
 	"os"
 	"strconv"
 
-	"github.com/nilese1/Ascii-Rasterizer/rasterizer"
 	"github.com/nilese1/Ascii-Rasterizer/vector"
 )
 
-
 const DIGITS = "0123456789.-"
-var DEFAULT_COLOUR = vector.Vec3{X: 255, Y: 255, Z: 255}
 
+var DEFAULT_COLOUR = CreateColour(255, 255, 255)
 
 func checkError(err error) {
-	if err != nil {panic(err)}
+	if err != nil {
+		panic(err)
+	}
 }
-
 
 func readFile(filename string) string {
 	data, err := os.ReadFile(filename)
@@ -25,7 +24,6 @@ func readFile(filename string) string {
 
 	return string(data)
 }
-
 
 func split(str string, seperator rune) []string {
 	current := ""
@@ -40,20 +38,22 @@ func split(str string, seperator rune) []string {
 		}
 	}
 
-	if len(current) > 0 {splitted = append(splitted, current)}
+	if len(current) > 0 {
+		splitted = append(splitted, current)
+	}
 
 	return splitted
 }
 
-
 func isNum(char rune) bool {
 	for _, i := range DIGITS {
-		if i == char {return true}
+		if i == char {
+			return true
+		}
 	}
 
 	return false
 }
-
 
 func appendNum(current_num string, nums []float64) []float64 {
 	num, err := strconv.ParseFloat(current_num, 32)
@@ -63,7 +63,6 @@ func appendNum(current_num string, nums []float64) []float64 {
 
 	return nums
 }
-
 
 func extractNums(line string) []float64 {
 	current_num := ""
@@ -83,11 +82,12 @@ func extractNums(line string) []float64 {
 	return nums
 }
 
-
 func extractVectors(lines []string, identifier string) []vector.Vec3 {
 	var values []vector.Vec3
 	for _, i := range lines {
-		if len(i) == 0 {continue}
+		if len(i) == 0 {
+			continue
+		}
 
 		line_type := split(i, ' ')[0]
 		if line_type == identifier {
@@ -99,16 +99,18 @@ func extractVectors(lines []string, identifier string) []vector.Vec3 {
 	return values
 }
 
+func build_triangles(face_vertices []vector.Vec3, face_normal vector.Vec3) []Triangle {
+	if len(face_vertices) < 3 {
+		panic("invalid number of vertices in face")
+	}
 
-func build_triangles(face_vertices []vector.Vec3, face_normal vector.Vec3) []rasterizer.Triangle {
-	if len(face_vertices) < 3 {panic("invalid number of vertices in face")}
-	
 	start := face_vertices[0]
 	prev := face_vertices[1]
 
-	var triangles []rasterizer.Triangle
+	var triangles []Triangle
+	// WARNING: something fishy here smells like fish... fish?
 	for _, current := range face_vertices[2:] {
-		tri := rasterizer.CreateTriangle(start, prev, current, face_normal)
+		tri := CreateTriangle(start, prev, current, face_normal)
 
 		prev = current
 		triangles = append(triangles, tri)
@@ -117,11 +119,12 @@ func build_triangles(face_vertices []vector.Vec3, face_normal vector.Vec3) []ras
 	return triangles
 }
 
-
-func build_faces(lines []string, vertices []vector.Vec3, normals []vector.Vec3) []rasterizer.Triangle {
-	var model_triangles []rasterizer.Triangle
+func build_faces(lines []string, vertices []vector.Vec3, normals []vector.Vec3) []Triangle {
+	var model_triangles []Triangle
 	for _, i := range lines {
-		if i[0] != 'f' {continue}
+		if i[0] != 'f' {
+			continue
+		}
 
 		triplets := split(i, ' ')[1:]
 
@@ -138,8 +141,8 @@ func build_faces(lines []string, vertices []vector.Vec3, normals []vector.Vec3) 
 			checkError(err)
 
 			//why obj files are 1-indexed I will never understand...
-			face_normal = normals[normal_inx - 1]
-			face_vertices = append(face_vertices, vertices[vertex_inx - 1])
+			face_normal = normals[normal_inx-1]
+			face_vertices = append(face_vertices, vertices[vertex_inx-1])
 		}
 
 		//just assume the face normal is the normal of the last vertex in the face
@@ -150,8 +153,7 @@ func build_faces(lines []string, vertices []vector.Vec3, normals []vector.Vec3) 
 	return model_triangles
 }
 
-
-func getColour(filename string) vector.Vec3 {
+func getColour(filename string) *Colour {
 	mat_data := readFile(filename)
 	mat_lines := split(mat_data, '\n')
 
@@ -159,12 +161,12 @@ func getColour(filename string) vector.Vec3 {
 
 	diffuse_colour := DEFAULT_COLOUR
 	if len(diffuse_colours) > 0 {
-		diffuse_colour = diffuse_colours[0].Mul(255)
+		scaledColours := diffuse_colours[0].Mul(255.0)
+		diffuse_colour = CreateColour(uint32(scaledColours.X), uint32(scaledColours.Y), uint32(scaledColours.Z))
 	}
 
 	return diffuse_colour
 }
-
 
 func ParseModel(file_path string) Model {
 	file_data := readFile(file_path + ".obj")

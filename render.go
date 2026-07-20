@@ -22,7 +22,7 @@ func moveCursor(lines uint32, move_up bool) {
 		char = 'A'
 	}
 
-	fmt.Printf("\033[%v%c", lines, char)
+	fmt.Printf("\033[%v%c\033[1G", lines, char)
 }
 
 func setColour(r int, g int, b int) {
@@ -44,12 +44,14 @@ func getChar(light float64) string {
 	return string(CHARS[char_inx])
 }
 
-func printScreen(pixels [][]pixel, scene *sc.Scene, headers ...string) {
+func printHeaders(headers ...string) {
 	setColour(255, 255, 255)
 	for _, header := range headers {
 		fmt.Print(header, "\n")
 	}
+}
 
+func printScene(pixels [][]pixel) {
 	for _, row := range pixels {
 		for _, pixel := range row {
 			setColour(pixel.r, pixel.g, pixel.b)
@@ -60,6 +62,8 @@ func printScreen(pixels [][]pixel, scene *sc.Scene, headers ...string) {
 
 		fmt.Print("\n")
 	}
+}
 
-	moveCursor(scene.ScreenHeight+uint32(len(headers)), true)
+func resetCursor(scenes []sc.Scene, headers ...string) {
+	moveCursor(sc.GetTotalHeight(scenes)+uint32(len(headers)), true)
 }

@@ -1,14 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 	"os"
 	"os/signal"
-	"time"
 
-	"github.com/nilese1/Ascii-Rasterizer/mesh"
 	"github.com/nilese1/Ascii-Rasterizer/rasterizer"
 	sc "github.com/nilese1/Ascii-Rasterizer/scene"
 	"github.com/nilese1/Ascii-Rasterizer/vector"
@@ -26,7 +23,7 @@ func triInPixel(scene *sc.Scene, pixel_x uint32, pixel_y uint32, tris []rasteriz
 	var nearest_tri rasterizer.Triangle
 
 	for _, i := range tris {
-		if i.PointInTri(point, scene) {
+		if scene.IsPointInTri(point, &i) {
 			if !hit || nearest_tri.GetWorldCenter().Z < nearest_tri.GetWorldCenter().Z {
 				nearest_tri = i
 			}
@@ -44,37 +41,38 @@ func randAngle(max_angle float64) float64 {
 	return rand_f * max_angle
 }
 
-func rotateModel(model *mesh.Model, translation vector.Vec3) {
+func rotateModel(model *rasterizer.Model, translation vector.Vec3) {
 	rot_x := randAngle(0.05)
 	rot_y := randAngle(0.05)
 	rot_z := randAngle(0.05)
 
 	inverse_translate := translation.Mul(-1)
 
-	model.Translate(inverse_translate)
+	model.Translate(inverse_translate.X, inverse_translate.Y, inverse_translate.Z)
 	model.Rotate(rot_x, rot_y, rot_z)
-	model.Translate(translation)
+	model.Translate(translation.X, translation.Y, translation.Z)
 }
 
-func renderModel(model *mesh.Model, scene *sc.Scene) [][]pixel {
-	screen := make([][]pixel, scene.ScreenHeight)
+// this needs some optimization
+func renderModel(model *rasterizer.Model, scene *sc.Scene) [][]pixel {
+	screen := make([][]pixel, scene.SceneHeight)
 	for i := range screen {
-		screen[i] = make([]pixel, scene.ScreenWidth)
+		screen[i] = make([]pixel, scene.SceneWidth)
 	}
 
-	for y := range scene.ScreenHeight {
-		for x := range scene.ScreenWidth {
+	for y := range scene.SceneHeight {
+		for x := range scene.SceneWidth {
 			p := pixel{0, 0, 0, 0}
 
 			hits, tri := triInPixel(scene, x, y, model.Triangles)
 			if hits {
 				normal := tri.GetNormal()
 				light := (1 + vector.Dot3(&scene.SunDir, &normal)) * 0.5
-				brightness_adjusted := model.Colour.Mul(light)
+				brightness_adjusted := model.Colour.Scale(light)
 
-				p.r = int(brightness_adjusted.X)
-				p.g = int(brightness_adjusted.Y)
-				p.b = int(brightness_adjusted.Z)
+				p.r = int(brightness_adjusted.GetR())
+				p.g = int(brightness_adjusted.GetB())
+				p.b = int(brightness_adjusted.GetG())
 
 				p.light = light
 			}
@@ -86,57 +84,52 @@ func renderModel(model *mesh.Model, scene *sc.Scene) [][]pixel {
 	return screen
 }
 
-func spinningObject(file_path string, scene *sc.Scene) {
-	model := mesh.ParseModel(file_path)
-
-	model.Scale(MODEL_SCALE)
-	model.Translate(MODEL_TRANSLATION)
-
-	var printTime time.Duration
-
+func spinningObjects(scenes []sc.Scene) {
 	for {
-		start := time.Now()
-
-		rotateModel(&model, MODEL_TRANSLATION)
-		screen := renderModel(&model, scene)
-
-		renderTime := time.Since(start)
-
-		totalTime := renderTime + printTime
-
-		frametimeHeader := fmt.Sprintf("Render Time: %v", renderTime)
-		printtimeHeader := fmt.Sprintf("Print Time: %v", printTime)
-		totaltimeHeader := fmt.Sprintf("Total Time: %v", totalTime)
-		fpsHeader := fmt.Sprintf("FPS: %v", float32(time.Second/totalTime))
-
-		start = time.Now()
-		printScreen(screen, scene, frametimeHeader, printtimeHeader, totaltimeHeader, fpsHeader)
-		printTime = time.Since(start)
+		for i := range scenes {
+			rotateModel(scenes[i].Model, MODEL_TRANSLATION)
+			screen := renderModel(scenes[i].Model, &scenes[i])
+			printScene(screen)
+		}
+		resetCursor(scenes)
 	}
 }
 
-func cleanup(scene *sc.Scene) {
+func cleanup(scenes []sc.Scene) {
 	showCursor()
-	moveCursor(scene.ScreenHeight, false)
+	moveCursor(sc.GetTotalHeight(scenes), false)
 }
 
 func main() {
-	scene := &sc.Scene{
-		ScreenWidth:     100,
-		ScreenHeight:    40,
+	var scenes []sc.Scene
+	var models []rasterizer.Model
+
+	model := rasterizer.ParseModel("models/cube")
+
+	model.Scale(MODEL_SCALE)
+	model.Translate(MODEL_TRANSLATION.X, MODEL_TRANSLATION.Y, MODEL_TRANSLATION.Z)
+
+	models = append(models, model)
+
+	scene := sc.Scene{
+		SceneWidth:      100,
+		SceneHeight:     20,
 		CamFOV:          math.Pi / 3,
 		ViewPlaneHeight: math.Tan(math.Pi / 6),
 
 		SunDir: vector.Vec3{X: 1, Y: 0.2, Z: -0.3}.Normalise(),
+		Model:  &models[0],
 	}
 
-	defer cleanup(scene)
+	scenes = append(scenes, scene)
+
+	defer cleanup(scenes)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
 
 	hideCursor()
-	go spinningObject("models/suzanne", scene)
+	go spinningObjects(scenes)
 
 	<-sig
 }
