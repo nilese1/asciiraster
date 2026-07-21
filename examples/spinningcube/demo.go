@@ -46,7 +46,7 @@ func main() {
 
 	model := ar.LoadObjFile("cube")
 
-	scene := sc.CreateScene(model)
+	scene := ar.CreateScene(model)
 
 	scenes = append(scenes, *scene)
 

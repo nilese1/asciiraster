@@ -1,8 +1,6 @@
 package scene
 
 import (
-	"math"
-
 	"github.com/nilese1/asciiraster/rasterizer"
 	"github.com/nilese1/asciiraster/vector"
 )
@@ -17,17 +15,6 @@ type Scene struct {
 	Model  *rasterizer.Model
 }
 
-func CreateScene(model *rasterizer.Model) *Scene {
-	return &Scene{
-		SceneWidth:      100,
-		SceneHeight:     40,
-		CamFOV:          math.Pi / 3,
-		ViewPlaneHeight: math.Tan(math.Pi / 6),
-
-		SunDir: vector.Vec3{X: 1, Y: 0.2, Z: -0.3}.Normalise(),
-		Model:  model,
-	}
-}
 
 func (scene *Scene) ConvertToScreen(point vector.Vec3) vector.Vec2 {
 	view_plane_point := convertToViewPlane(point, scene.ViewPlaneHeight)

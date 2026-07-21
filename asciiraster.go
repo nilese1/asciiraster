@@ -1,6 +1,8 @@
 package asciiraster
 
 import (
+	"math"
+
 	"github.com/nilese1/asciiraster/rasterizer"
 	sc "github.com/nilese1/asciiraster/scene"
 	"github.com/nilese1/asciiraster/vector"
@@ -55,4 +57,16 @@ func LoadObjFile(filepath string) *rasterizer.Model {
 	model.Translate(MODEL_TRANSLATION.X, MODEL_TRANSLATION.Y, MODEL_TRANSLATION.Z)
 
 	return model
+}
+
+func CreateScene(model *rasterizer.Model) *sc.Scene {
+	return &sc.Scene{
+		SceneWidth:      100,
+		SceneHeight:     40,
+		CamFOV:          math.Pi / 3,
+		ViewPlaneHeight: math.Tan(math.Pi / 6),
+
+		SunDir: vector.Vec3{X: 1, Y: 0.2, Z: -0.3}.Normalise(),
+		Model:  model,
+	}
 }
