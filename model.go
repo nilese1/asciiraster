@@ -1,4 +1,4 @@
-package rasterizer
+package asciiraster
 
 type Colour struct {
 	r, g, b uint32

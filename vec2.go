@@ -1,4 +1,4 @@
-package vector
+package asciiraster
 
 type Vec2 struct {
 	X float64

@@ -2,8 +2,6 @@ package asciiraster
 
 import (
 	"fmt"
-
-	sc "github.com/nilese1/asciiraster/scene"
 )
 
 const CHARS = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
@@ -36,8 +34,8 @@ func PrintScene(pixels [][]pixel) {
 	}
 }
 
-func ResetCursor(scenes []sc.Scene, headers ...string) {
-	moveCursor(sc.GetTotalHeight(scenes)+uint32(len(headers)), true)
+func ResetCursor(scenes []Scene, headers ...string) {
+	moveCursor(GetTotalHeight(scenes)+uint32(len(headers)), true)
 }
 
 func HideCursor() {

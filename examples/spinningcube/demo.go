@@ -6,9 +6,6 @@ import (
 	"os/signal"
 
 	ar "github.com/nilese1/asciiraster"
-	"github.com/nilese1/asciiraster/rasterizer"
-	sc "github.com/nilese1/asciiraster/scene"
-	"github.com/nilese1/asciiraster/vector"
 )
 
 func randAngle(max_angle float64) float64 {
@@ -17,7 +14,7 @@ func randAngle(max_angle float64) float64 {
 	return rand_f * max_angle
 }
 
-func rotateModel(model *rasterizer.Model, translation vector.Vec3) {
+func rotateModel(model *ar.Model, translation ar.Vec3) {
 	rot_x := randAngle(0.05)
 	rot_y := randAngle(0.05)
 	rot_z := randAngle(0.05)
@@ -30,7 +27,7 @@ func rotateModel(model *rasterizer.Model, translation vector.Vec3) {
 }
 
 // meant as a method to demo the rasterizer
-func spinningObjects(scenes []sc.Scene) {
+func spinningObjects(scenes []ar.Scene) {
 	for {
 		for i := range scenes {
 			rotateModel(scenes[i].Model, ar.MODEL_TRANSLATION)
@@ -42,7 +39,7 @@ func spinningObjects(scenes []sc.Scene) {
 }
 
 func main() {
-	var scenes []sc.Scene
+	var scenes []ar.Scene
 
 	model := ar.LoadObjFile("cube")
 

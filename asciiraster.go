@@ -2,19 +2,15 @@ package asciiraster
 
 import (
 	"math"
-
-	"github.com/nilese1/asciiraster/rasterizer"
-	sc "github.com/nilese1/asciiraster/scene"
-	"github.com/nilese1/asciiraster/vector"
 )
 
 var (
-	MODEL_TRANSLATION = vector.Vec3{X: 0, Y: 0, Z: 5}
+	MODEL_TRANSLATION = Vec3{X: 0, Y: 0, Z: 5}
 	MODEL_SCALE       = 1.5
 )
 
 // this needs some optimization
-func RenderModel(model *rasterizer.Model, scene *sc.Scene) [][]pixel {
+func RenderModel(model *Model, scene *Scene) [][]pixel {
 	screen := make([][]pixel, scene.SceneHeight)
 	for i := range screen {
 		screen[i] = make([]pixel, scene.SceneWidth)
@@ -27,7 +23,7 @@ func RenderModel(model *rasterizer.Model, scene *sc.Scene) [][]pixel {
 			hits, tri := scene.GetTriInPixel(x, y, model.Triangles)
 			if hits {
 				normal := tri.GetNormal()
-				light := (1 + vector.Dot3(&scene.SunDir, &normal)) * 0.5
+				light := (1 + Dot3(&scene.SunDir, &normal)) * 0.5
 				brightness_adjusted := model.Colour.Scale(light)
 
 				p.r = int(brightness_adjusted.GetR())
@@ -44,14 +40,14 @@ func RenderModel(model *rasterizer.Model, scene *sc.Scene) [][]pixel {
 	return screen
 }
 
-func Cleanup(scenes []sc.Scene) {
+func Cleanup(scenes []Scene) {
 	showCursor()
-	moveCursor(sc.GetTotalHeight(scenes), false)
+	moveCursor(GetTotalHeight(scenes), false)
 }
 
 // TODO: more robust error handling with parsing
-func LoadObjFile(filepath string) *rasterizer.Model {
-	model := rasterizer.ParseModel(filepath)
+func LoadObjFile(filepath string) *Model {
+	model := ParseModel(filepath)
 
 	model.Scale(MODEL_SCALE)
 	model.Translate(MODEL_TRANSLATION.X, MODEL_TRANSLATION.Y, MODEL_TRANSLATION.Z)
@@ -59,14 +55,14 @@ func LoadObjFile(filepath string) *rasterizer.Model {
 	return model
 }
 
-func CreateScene(model *rasterizer.Model) *sc.Scene {
-	return &sc.Scene{
+func CreateScene(model *Model) *Scene {
+	return &Scene{
 		SceneWidth:      100,
 		SceneHeight:     40,
 		CamFOV:          math.Pi / 3,
 		ViewPlaneHeight: math.Tan(math.Pi / 6),
 
-		SunDir: vector.Vec3{X: 1, Y: 0.2, Z: -0.3}.Normalise(),
+		SunDir: Vec3{X: 1, Y: 0.2, Z: -0.3}.Normalise(),
 		Model:  model,
 	}
 }

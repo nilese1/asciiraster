@@ -1,10 +1,8 @@
-package rasterizer
+package asciiraster
 
 import (
 	"os"
 	"strconv"
-
-	"github.com/nilese1/asciiraster/vector"
 )
 
 const DIGITS = "0123456789.-"
@@ -82,8 +80,8 @@ func extractNums(line string) []float64 {
 	return nums
 }
 
-func extractVectors(lines []string, identifier string) []vector.Vec3 {
-	var values []vector.Vec3
+func extractVectors(lines []string, identifier string) []Vec3 {
+	var values []Vec3
 	for _, i := range lines {
 		if len(i) == 0 {
 			continue
@@ -92,14 +90,14 @@ func extractVectors(lines []string, identifier string) []vector.Vec3 {
 		line_type := split(i, ' ')[0]
 		if line_type == identifier {
 			vertex_coords := extractNums(i)
-			values = append(values, vector.CreateVec3(vertex_coords[0], vertex_coords[1], vertex_coords[2]))
+			values = append(values, CreateVec3(vertex_coords[0], vertex_coords[1], vertex_coords[2]))
 		}
 	}
 
 	return values
 }
 
-func build_triangles(face_vertices []vector.Vec3, face_normal vector.Vec3) []Triangle {
+func build_triangles(face_vertices []Vec3, face_normal Vec3) []Triangle {
 	if len(face_vertices) < 3 {
 		panic("invalid number of vertices in face")
 	}
@@ -119,7 +117,7 @@ func build_triangles(face_vertices []vector.Vec3, face_normal vector.Vec3) []Tri
 	return triangles
 }
 
-func build_faces(lines []string, vertices []vector.Vec3, normals []vector.Vec3) []Triangle {
+func build_faces(lines []string, vertices []Vec3, normals []Vec3) []Triangle {
 	var model_triangles []Triangle
 	for _, i := range lines {
 		if i[0] != 'f' {
@@ -128,8 +126,8 @@ func build_faces(lines []string, vertices []vector.Vec3, normals []vector.Vec3) 
 
 		triplets := split(i, ' ')[1:]
 
-		var face_normal vector.Vec3
-		var face_vertices []vector.Vec3
+		var face_normal Vec3
+		var face_vertices []Vec3
 
 		for _, x := range triplets {
 			indexes := split(x, '/')
