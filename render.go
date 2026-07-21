@@ -16,6 +16,30 @@ type pixel struct {
 	light float64
 }
 
+func PrintHeaders(headers ...string) {
+	setColour(255, 255, 255)
+	for _, header := range headers {
+		fmt.Print(header, "\n")
+	}
+}
+
+func PrintScene(pixels [][]pixel) {
+	for _, row := range pixels {
+		for _, pixel := range row {
+			setColour(pixel.r, pixel.g, pixel.b)
+			char := getChar(pixel.light)
+
+			fmt.Print(char)
+		}
+
+		fmt.Print("\n")
+	}
+}
+
+func ResetCursor(scenes []sc.Scene, headers ...string) {
+	moveCursor(sc.GetTotalHeight(scenes)+uint32(len(headers)), true)
+}
+
 func moveCursor(lines uint32, move_up bool) {
 	char := 'B'
 	if move_up {
@@ -42,28 +66,4 @@ func getChar(light float64) string {
 	char_inx := len(CHARS) - chosen_char - 1
 
 	return string(CHARS[char_inx])
-}
-
-func printHeaders(headers ...string) {
-	setColour(255, 255, 255)
-	for _, header := range headers {
-		fmt.Print(header, "\n")
-	}
-}
-
-func printScene(pixels [][]pixel) {
-	for _, row := range pixels {
-		for _, pixel := range row {
-			setColour(pixel.r, pixel.g, pixel.b)
-			char := getChar(pixel.light)
-
-			fmt.Print(char)
-		}
-
-		fmt.Print("\n")
-	}
-}
-
-func resetCursor(scenes []sc.Scene, headers ...string) {
-	moveCursor(sc.GetTotalHeight(scenes)+uint32(len(headers)), true)
 }

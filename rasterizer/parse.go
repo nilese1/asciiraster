@@ -168,7 +168,7 @@ func getColour(filename string) *Colour {
 	return diffuse_colour
 }
 
-func ParseModel(file_path string) Model {
+func ParseModel(file_path string) *Model {
 	file_data := readFile(file_path + ".obj")
 	lines := split(file_data, '\n')
 
@@ -179,5 +179,5 @@ func ParseModel(file_path string) Model {
 
 	colour := getColour(file_path + ".mtl")
 
-	return Model{model_triangles, colour}
+	return &Model{model_triangles, colour}
 }
